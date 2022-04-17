@@ -54,9 +54,5 @@ func TestCartInventoryErrors(t *testing.T) {
 	assert.Equal(t, map[string]int{}, cart)
 
 	stocksRemaining := inventoryService.GetInventory()
-	assert.Equal(t, map[string]int{
-		"loofah":  5,
-		"soap":    10,
-		"shampoo": 3,
-	}, stocksRemaining)
+	assert.Equal(t, stocks, stocksRemaining)
 }
