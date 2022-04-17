@@ -18,16 +18,17 @@ func TestCartInventoryIntegration(t *testing.T) {
 
 	inventoryService := inventory.NewService(stocks)
 	cartService := cart.NewService(inventoryService)
+	userToken := "testing"
 
-	err := cartService.AddItem("loofah", 3)
-	cart := cartService.GetCart()
+	err := cartService.AddItem(userToken, "loofah", 3)
+	cart := cartService.GetCart(userToken)
 
 	assert.NoError(t, err)
-	assert.Equal(t, map[string]int{"loofah": 3}, cart)
+	assert.Equal(t, map[string]int{"loofah": 3}, cart.Items())
 
-	err = cartService.AddItem("loofah", 1)
-	cart = cartService.GetCart()
-	assert.Equal(t, map[string]int{"loofah": 4}, cart)
+	err = cartService.AddItem(userToken, "loofah", 1)
+	cart = cartService.GetCart(userToken)
+	assert.Equal(t, map[string]int{"loofah": 4}, cart.Items())
 
 	stocksRemaining := inventoryService.GetInventory()
 	assert.Equal(t, map[string]int{
@@ -46,12 +47,14 @@ func TestCartInventoryErrors(t *testing.T) {
 
 	inventoryService := inventory.NewService(stocks)
 	cartService := cart.NewService(inventoryService)
+	userToken := "testing"
 
-	err := cartService.AddItem("shampoo", 10)
-	cart := cartService.GetCart()
+	err := cartService.AddItem(userToken, "shampoo", 10)
+	cart := cartService.GetCart(userToken)
+	var uninitialisedMap map[string]int
 
 	assert.ErrorContains(t, err, fmt.Sprintf("insufficient stocks for %s, only %d qty left", "shampoo", 3))
-	assert.Equal(t, map[string]int{}, cart)
+	assert.Equal(t, uninitialisedMap, cart.Items())
 
 	stocksRemaining := inventoryService.GetInventory()
 	assert.Equal(t, stocks, stocksRemaining)

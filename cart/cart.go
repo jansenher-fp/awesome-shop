@@ -9,19 +9,24 @@ type inventoryService interface {
 	DeductStock(string, int) error
 }
 
+type cart struct {
+	id    string
+	items map[string]int
+}
+
 type Service struct {
 	inventory inventoryService
-	cart      map[string]int
+	carts     map[string]cart
 }
 
 func NewService(inventory inventoryService) *Service {
 	return &Service{
 		inventory: inventory,
-		cart:      make(map[string]int),
+		carts:     make(map[string]cart),
 	}
 }
 
-func (s *Service) AddItem(name string, qty int) error {
+func (s *Service) AddItem(token, name string, qty int) error {
 	stock := s.inventory.GetStock(name)
 	if stock < qty {
 		return fmt.Errorf("insufficient stocks for %s, only %d qty left", name, stock)
@@ -31,10 +36,24 @@ func (s *Service) AddItem(name string, qty int) error {
 		return fmt.Errorf("inventory error: %w", err)
 	}
 
-	s.cart[name] += qty
+	userCart, ok := s.carts[token]
+	if !ok {
+		s.carts[token] = cart{
+			id:    token,
+			items: make(map[string]int),
+		}
+		userCart = s.carts[token]
+	}
+
+	userCart.items[name] += qty
+
 	return nil
 }
 
-func (s *Service) GetCart() map[string]int {
-	return s.cart
+func (s *Service) GetCart(token string) cart {
+	return s.carts[token]
+}
+
+func (c *cart) Items() map[string]int {
+	return c.items
 }
