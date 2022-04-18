@@ -9,14 +9,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCartInventoryIntegration(t *testing.T) {
-	stocks := map[string]int{
+var (
+	stocks = map[string]int{
 		"loofah":  5,
 		"soap":    10,
 		"shampoo": 3,
 	}
 
-	inventoryService := inventory.NewService(stocks)
+	priceList = map[string]int{
+		"loofah":  5,
+		"soap":    1,
+		"shampoo": 2,
+	}
+)
+
+func TestCartInventoryIntegration(t *testing.T) {
+	inventoryService := inventory.NewService(stocks, priceList)
 	cartService := cart.NewService(inventoryService)
 	userToken := "testing"
 
@@ -39,22 +47,15 @@ func TestCartInventoryIntegration(t *testing.T) {
 }
 
 func TestCartInventoryErrors(t *testing.T) {
-	stocks := map[string]int{
-		"loofah":  5,
-		"soap":    10,
-		"shampoo": 3,
-	}
-
-	inventoryService := inventory.NewService(stocks)
+	inventoryService := inventory.NewService(stocks, priceList)
 	cartService := cart.NewService(inventoryService)
 	userToken := "testing"
 
 	err := cartService.AddItem(userToken, "shampoo", 10)
 	cart := cartService.GetCart(userToken)
-	var uninitialisedMap map[string]int
 
 	assert.ErrorContains(t, err, fmt.Sprintf("insufficient stocks for %s, only %d qty left", "shampoo", 3))
-	assert.Equal(t, uninitialisedMap, cart.Items())
+	assert.Equal(t, map[string]int{}, cart.Items())
 
 	stocksRemaining := inventoryService.GetInventory()
 	assert.Equal(t, stocks, stocksRemaining)

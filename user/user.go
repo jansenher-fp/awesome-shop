@@ -1,5 +1,9 @@
 package user
 
+import "math/rand"
+
+const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 type User struct {
 	name       string
 	phone      string
@@ -48,4 +52,25 @@ func (u *User) Favours(name string) bool {
 
 func (u *User) AddHistory(order Order) {
 	u.history[order.id] = order
+}
+
+func (u *User) GetHistory() map[string]Order {
+	return u.history
+}
+
+func NewOrder(items map[string]int) Order {
+	b := make([]byte, 8)
+
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return Order{
+		id:    string(b),
+		items: items,
+	}
+}
+
+func (o Order) GetItems() map[string]int {
+	return o.items
 }

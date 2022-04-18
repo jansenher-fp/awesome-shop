@@ -6,23 +6,25 @@ import (
 
 type inventoryService interface {
 	GetStock(string) int
+	GetPrice(string) int
 	DeductStock(string, int) error
 }
 
-type cart struct {
-	id    string
-	items map[string]int
+type Cart struct {
+	userToken string
+	items     map[string]int
+	amount    int
 }
 
 type Service struct {
 	inventory inventoryService
-	carts     map[string]cart
+	carts     map[string]*Cart
 }
 
 func NewService(inventory inventoryService) *Service {
 	return &Service{
 		inventory: inventory,
-		carts:     make(map[string]cart),
+		carts:     make(map[string]*Cart),
 	}
 }
 
@@ -36,24 +38,36 @@ func (s *Service) AddItem(token, name string, qty int) error {
 		return fmt.Errorf("inventory error: %w", err)
 	}
 
-	userCart, ok := s.carts[token]
-	if !ok {
-		s.carts[token] = cart{
-			id:    token,
-			items: make(map[string]int),
-		}
-		userCart = s.carts[token]
-	}
+	userCart := s.GetCart(token)
 
 	userCart.items[name] += qty
+
+	price := s.inventory.GetPrice(name)
+	userCart.amount += price * qty
 
 	return nil
 }
 
-func (s *Service) GetCart(token string) cart {
-	return s.carts[token]
+func (s *Service) GetCart(token string) *Cart {
+	return s.getOrCreateCart(token)
 }
 
-func (c *cart) Items() map[string]int {
+func (c *Cart) Items() map[string]int {
 	return c.items
+}
+
+func (c *Cart) Amount() int {
+	return c.amount
+}
+
+func (s *Service) getOrCreateCart(token string) *Cart {
+	userCart, ok := s.carts[token]
+	if !ok {
+		s.carts[token] = &Cart{
+			userToken: token,
+			items:     make(map[string]int),
+		}
+		userCart = s.carts[token]
+	}
+	return userCart
 }

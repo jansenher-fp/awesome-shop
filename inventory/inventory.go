@@ -4,24 +4,29 @@ import "fmt"
 
 type Service struct {
 	inventory map[string]int
+	priceList map[string]int
 }
 
-func NewService(inventory map[string]int) *Service {
-	return &Service{inventory: inventory}
+func NewService(inventory, priceList map[string]int) *Service {
+	return &Service{inventory: inventory, priceList: priceList}
 }
 
-func (i *Service) GetInventory() map[string]int {
-	return i.inventory
+func (s *Service) GetInventory() map[string]int {
+	return s.inventory
 }
 
-func (i *Service) GetStock(name string) int {
-	return i.inventory[name]
+func (s *Service) GetStock(name string) int {
+	return s.inventory[name]
 }
 
-func (i *Service) DeductStock(name string, qty int) error {
-	if qty > i.inventory[name] {
+func (s *Service) DeductStock(name string, qty int) error {
+	if qty > s.inventory[name] {
 		return fmt.Errorf("insufficient stocks for %s", name)
 	}
-	i.inventory[name] -= qty
+	s.inventory[name] -= qty
 	return nil
+}
+
+func (s *Service) GetPrice(name string) int {
+	return s.priceList[name]
 }
